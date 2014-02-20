@@ -42,14 +42,59 @@ define( [ 'quintus' ], function ( Quintus ) {
 		var SPRITE_FRIENDLY_SHOT = 50;
 
 
+		Q.component( 'playerControls', {
+			defaults: {
+				speed: 128,
+				direction: 'down'
+			},
+
+			added: function() {
+				var p = this.entity.p;
+
+				Q._defaults( p, this.defaults );
+
+				this.entity.on( 'step', this, 'step' );
+			},
+
+			step: function( dt ) {
+				var p = this.entity.p;
+
+				if ( p.vx > 0 ) {
+					p.angle = 180;
+				} else if ( p.vx < 0 ) {
+					p.angle = 0;
+				} else if ( p.vy > 0 ) {
+					p.angle = -90;
+				} else if ( p.vy < 0 ) {
+					p.angle = 90;
+				}
+
+				if ( Q.inputs['left'] ) {
+					p.vx = -p.speed;
+				} else if ( Q.inputs['right'] ) {
+					p.vx = p.speed;
+				} else if ( Q.inputs['up'] ) {
+					p.vy = -p.speed;
+				} else if ( Q.inputs['down'] ) {
+					p.vy = p.speed;
+				} else {
+					p.vx = 0;
+					p.vy = 0;
+				}
+
+			}
+		});
+
+
 		Q.Sprite.extend( 'Player', {
 			init: function(p) {
 				this._super( p, {
 					sheet: 'player',
-					collisionMask: SPRITE_PLAYER,
+					type: SPRITE_PLAYER,
+					collisionMask: SPRITE_MAP_TILE,
 				} );
 
-				//this.add( '2d' );
+				this.add( '2d, playerControls' );
 			}
 		} );
 
