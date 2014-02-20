@@ -40,6 +40,30 @@ define( [ 'quintus' ], function ( Quintus ) {
 		var SPRITE_ENEMY = 30;
 		var SPRITE_FRIENDLY_SHOT = 40;
 		var SPRITE_FRIENDLY_SHOT = 50;
+
+
+		Q.TileLayer.extend( 'TankTownMap', {
+			init: function() {
+				this._super({
+					type: SPRITE_MAP_TILE,
+					dataAsset: 'level.json',
+					sheet: 'tiles',
+				});
+			},
+
+			setup: function() {
+			}
+		} );
+		Q.scene( 'level1', function( stage ) {
+			var map = stage.collisionLayer( new Q.TankTownMap() );
+			map.setup();
+		} );
+
+		Q.load( 'level.json, blocks.png', function() {
+			Q.sheet( 'tiles', 'blocks.png', { tileW: 32, tileH: 32 } );
+
+			Q.stageScene( 'level1' );
+		} );
 	}
 
 
