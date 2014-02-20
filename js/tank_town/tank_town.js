@@ -63,18 +63,22 @@ define( [ 'quintus' ], function ( Quintus ) {
 					p.vx = -p.speed;
 					this.entity.play('walk_left');
 					p.direction = "left";
+					p.vy = 0;
 				} else if ( Q.inputs['right'] ) {
 					p.vx = p.speed;
 					this.entity.play('walk_right');
 					p.direction = "right";
+					p.vy = 0;
 				} else if ( Q.inputs['up'] ) {
 					p.vy = -p.speed;
 					this.entity.play('walk_up');
 					p.direction = "up";
+					p.vx = 0;
 				} else if ( Q.inputs['down'] ) {
 					p.vy = p.speed;
 					this.entity.play('walk_down');
 					p.direction = "down";
+					p.vx = 0;
 				} else {
 					this.entity.play('stand_' + p.direction);
 					p.vx = 0;
