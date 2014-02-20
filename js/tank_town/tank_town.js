@@ -4,7 +4,7 @@ define( [ 'quintus' ], function ( Quintus ) {
 
 	// Return a x and y location from a row and column
 	var tilePos = function ( col, row ) {
-		return { x: col*32 + 16, y: row*32 + 16 };
+		return { x: col*32 + 32, y: row*32 + 32 };
 	};
 
 
@@ -42,6 +42,18 @@ define( [ 'quintus' ], function ( Quintus ) {
 		var SPRITE_FRIENDLY_SHOT = 50;
 
 
+		Q.Sprite.extend( 'Player', {
+			init: function(p) {
+				this._super( p, {
+					sheet: 'player',
+					collisionMask: SPRITE_PLAYER,
+				} );
+
+				//this.add( '2d' );
+			}
+		} );
+
+
 		Q.TileLayer.extend( 'TankTownMap', {
 			init: function() {
 				this._super({
@@ -57,11 +69,13 @@ define( [ 'quintus' ], function ( Quintus ) {
 		Q.scene( 'level1', function( stage ) {
 			var map = stage.collisionLayer( new Q.TankTownMap() );
 			map.setup();
+
+			var player = stage.insert( new Q.Player( tilePos( 1, 1 ) ) );
 		} );
 
-		Q.load( 'level.json, blocks.png', function() {
+		Q.load( 'level.json, blocks.png, hero.png', function() {
 			Q.sheet( 'tiles', 'blocks.png', { tileW: 32, tileH: 32 } );
-
+			Q.sheet( 'player', 'hero.png', { tileW: 64, tileH: 64 } );
 			Q.stageScene( 'level1' );
 		} );
 	}
