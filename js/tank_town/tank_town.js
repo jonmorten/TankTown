@@ -59,25 +59,24 @@ define( [ 'quintus' ], function ( Quintus ) {
 			step: function( dt ) {
 				var p = this.entity.p;
 
-				if ( p.vx > 0 ) {
-					p.angle = 180;
-				} else if ( p.vx < 0 ) {
-					p.angle = 0;
-				} else if ( p.vy > 0 ) {
-					p.angle = -90;
-				} else if ( p.vy < 0 ) {
-					p.angle = 90;
-				}
-
 				if ( Q.inputs['left'] ) {
 					p.vx = -p.speed;
+					this.entity.play('walk_left');
+					p.direction = "left";
 				} else if ( Q.inputs['right'] ) {
 					p.vx = p.speed;
+					this.entity.play('walk_right');
+					p.direction = "right";
 				} else if ( Q.inputs['up'] ) {
 					p.vy = -p.speed;
+					this.entity.play('walk_up');
+					p.direction = "up";
 				} else if ( Q.inputs['down'] ) {
 					p.vy = p.speed;
+					this.entity.play('walk_down');
+					p.direction = "down";
 				} else {
+					this.entity.play('stand_' + p.direction);
 					p.vx = 0;
 					p.vy = 0;
 				}
@@ -90,11 +89,12 @@ define( [ 'quintus' ], function ( Quintus ) {
 			init: function(p) {
 				this._super( p, {
 					sheet: 'player',
+					sprite: "player",
 					type: SPRITE_PLAYER,
 					collisionMask: SPRITE_MAP_TILE,
 				} );
 
-				this.add( '2d, playerControls' );
+				this.add( '2d, playerControls, animation' );
 			}
 		} );
 
@@ -111,16 +111,28 @@ define( [ 'quintus' ], function ( Quintus ) {
 			setup: function() {
 			}
 		} );
+
 		Q.scene( 'level1', function( stage ) {
 			var map = stage.collisionLayer( new Q.TankTownMap() );
 			map.setup();
 
 			var player = stage.insert( new Q.Player( tilePos( 1, 1 ) ) );
+
 		} );
 
 		Q.load( 'level.json, blocks.png, hero.png', function() {
 			Q.sheet( 'tiles', 'blocks.png', { tileW: 32, tileH: 32 } );
 			Q.sheet( 'player', 'hero.png', { tileW: 64, tileH: 64 } );
+			Q.animations('player', {
+				walk_left: { frames: [0,1], rate: 1/5 },
+				walk_right: { frames: [2,3], rate: 1/5 },
+				walk_up: { frames: [4,5], rate: 1/5 },
+				walk_down: { frames: [6,7], rate: 1/5 },
+				stand_left: { frames: [0] },
+				stand_right: { frames: [2], loop: true },
+				stand_up: { frames: [4], loop: true },
+				stand_down: { frames: [6], loop: true }
+			});
 			Q.stageScene( 'level1' );
 		} );
 	}
