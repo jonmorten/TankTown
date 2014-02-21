@@ -21,10 +21,13 @@ define( [ 'quintus' ], function ( Quintus ) {
 			maximize: true
 		}
 		var Q = Quintus( {
-			development: true
+			development: true,
+			audioSupported: ['mp3']
 		} )
-		.include( 'Sprites, Scenes, Input, 2D, Anim' )
-		.setup( this.canvas, setupOptions );
+		.include( 'Sprites, Scenes, Input, 2D, Anim, Touch, UI, Audio' )
+		.setup( this.canvas, setupOptions )
+		.controls().touch()
+		.enableSound();
 
 
 		Q.input.keyboardControls();
@@ -99,6 +102,11 @@ define( [ 'quintus' ], function ( Quintus ) {
 				} );
 
 				this.add( '2d, playerControls, animation' );
+				this.on('hit');
+			},
+
+			hit: function (obj) {
+				console.log('hit..');
 			}
 		} );
 
@@ -122,9 +130,40 @@ define( [ 'quintus' ], function ( Quintus ) {
 
 			var player = stage.insert( new Q.Player( tilePos( 1, 1 ) ) );
 
+
 		} );
 
-		Q.load( 'level.json, blocks.png, hero.png', function() {
+		Q.scene('start', function (stage) {
+			var container = stage.insert(new Q.UI.Container({
+				y: Q.height/2,
+				x: Q.width/2
+			}));
+
+			stage.insert(new Q.UI.Text({
+				label: 'TankTown Revolution',
+				color: '#999',
+				x: 0,
+				y: 0
+			}), container);
+
+			container.fit(20, 100);
+
+			var button = container.insert(new Q.UI.Button({
+				label: 'Play',
+				fill: '#999',
+				y: 50,
+				x: 0
+			}));
+
+			button.on('click', function () {
+				Q.stageScene('level1');
+				Q.audio.stop('main_theme.mp3');
+			});
+
+			Q.audio.play('main_theme.mp3', {loop: true});
+		});
+
+		Q.load( 'level.json, blocks.png, hero.png, main_theme.mp3', function() {
 			Q.sheet( 'tiles', 'blocks.png', { tileW: 32, tileH: 32 } );
 			Q.sheet( 'player', 'hero.png', { tileW: 64, tileH: 64 } );
 			Q.animations('player', {
@@ -137,7 +176,7 @@ define( [ 'quintus' ], function ( Quintus ) {
 				stand_up: { frames: [4] },
 				stand_down: { frames: [6] }
 			});
-			Q.stageScene( 'level1' );
+			Q.stageScene( 'start' );
 		} );
 	}
 
