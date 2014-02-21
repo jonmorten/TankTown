@@ -47,8 +47,8 @@ define( [ 'quintus' ], function ( Quintus ) {
 
 		Q.component( 'playerControls', {
 			defaults: {
-				speed: 128,
-				direction: 'down'
+				direction: 'down',
+				speed: 2
 			},
 
 			added: function() {
@@ -62,37 +62,88 @@ define( [ 'quintus' ], function ( Quintus ) {
 			step: function( dt ) {
 				var p = this.entity.p;
 
-				if ( Q.inputs['left'] ) {
-					p.vx = -p.speed;
-					this.entity.play('walk_left');
-					p.direction = "left";
-					p.vy = 0;
-				} else if ( Q.inputs['right'] ) {
-					p.vx = p.speed;
-					this.entity.play('walk_right');
-					p.direction = "right";
-					p.vy = 0;
-				} else if ( Q.inputs['up'] ) {
-					p.vy = -p.speed;
-					this.entity.play('walk_up');
-					p.direction = "up";
-					p.vx = 0;
-				} else if ( Q.inputs['down'] ) {
-					p.vy = p.speed;
-					this.entity.play('walk_down');
-					p.direction = "down";
-					p.vx = 0;
-				} else {
-					this.entity.play('stand_' + p.direction);
-					p.vx = 0;
-					p.vy = 0;
-				}
+				var mod_x = p.x % 32;
+				var mod_y = p.y % 32;
+				var snap_x = ( mod_x !== 0 );
+				var snap_y = ( mod_y !== 0 );
 
+				var is_moving_left = Q.inputs['left'];
+				var is_moving_right = Q.inputs['right'];
+				var is_moving_up = Q.inputs['up'];
+				var is_moving_down = Q.inputs['down'];
+
+				//	Moving horizontally
+				if ( is_moving_left || is_moving_right ) {
+					if ( is_moving_left ) {
+						this.entity.play('walk_left');
+						p.direction = 'left';
+						p.x -= p.speed;
+					} else if ( is_moving_right ) {
+						this.entity.play('walk_right');
+						p.direction = 'right';
+						p.x += p.speed;
+					}
+
+					if ( snap_y ) {
+						var down_slack = 16;
+						if ( mod_y < 16 ) {
+							p.y -= 4;
+						} else if ( mod_y >= 16 ) {
+							p.y += 4;
+						}
+					}
+				//	Moving vertically
+				} else if ( is_moving_up || is_moving_down ) {
+					if ( is_moving_up ) {
+						this.entity.play('walk_up');
+						p.direction = 'up';
+						p.y -= p.speed;
+					} else if ( is_moving_down ) {
+						this.entity.play('walk_down');
+						p.direction = 'down';
+						p.y += p.speed;
+					}
+
+					if ( snap_x ) {
+						if ( mod_x < 16 ) {
+							p.x -= 4;
+						} else if ( mod_x >= 16 ) {
+							p.x += 4;
+						}
+					}
+				} else {
+					if ( snap_x || snap_y ) {
+						if ( snap_x ) {
+							if ( p.direction === 'right' ) {
+								this.entity.play('walk_right');
+								p.x += p.speed;
+							} else {
+								this.entity.play('walk_left');
+								p.x -= p.speed;
+							}
+						}
+						if ( snap_y ) {
+							if ( p.direction === 'down' ) {
+								this.entity.play('walk_down');
+								p.y += p.speed;
+							} else {
+								this.entity.play('walk_up');
+								p.y -= p.speed;
+							}
+						}
+					} else {
+						this.entity.play('stand_' + p.direction);
+					}
+				}
 			}
 		});
 
 
 		Q.Sprite.extend( 'Player', {
+			defaults: {
+				is_dummy: false
+			},
+
 			init: function(p) {
 				this._super( p, {
 					sheet: 'player',
