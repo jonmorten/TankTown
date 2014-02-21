@@ -133,9 +133,9 @@ define( [ 'quintus' ], function ( Quintus ) {
 				walk_up: { frames: [4,5], rate: 1/5 },
 				walk_down: { frames: [6,7], rate: 1/5 },
 				stand_left: { frames: [0] },
-				stand_right: { frames: [2], loop: true },
-				stand_up: { frames: [4], loop: true },
-				stand_down: { frames: [6], loop: true }
+				stand_right: { frames: [2] },
+				stand_up: { frames: [4] },
+				stand_down: { frames: [6] }
 			});
 			Q.stageScene( 'level1' );
 		} );
