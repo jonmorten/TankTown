@@ -184,7 +184,7 @@ define( [ 'quintus' ], function ( Quintus ) {
 
 			var player = stage.insert( new Q.Player( tilePos( 1, 1 ) ) );
 
-
+			stage.add( 'viewport' ).follow( player );
 		} );
 
 		Q.scene('start', function (stage) {
