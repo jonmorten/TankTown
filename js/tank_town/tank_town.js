@@ -41,8 +41,98 @@ define( [ 'quintus' ], function ( Quintus ) {
 		var SPRITE_MAP_TILE = 10;
 		var SPRITE_PLAYER = 20;
 		var SPRITE_ENEMY = 30;
-		var SPRITE_FRIENDLY_SHOT = 40;
-		var SPRITE_FRIENDLY_SHOT = 50;
+		var SPRITE_BULLET = 40;
+
+
+		Q.Sprite.extend( 'Bullet', {
+			init: function( p ) {
+				this._super( p, {
+					w: 6,
+					h: 6,
+					type: SPRITE_BULLET,
+					collisionMask: SPRITE_MAP_TILE,
+					sensor: true// Disable physical interaction with other sprites
+				} );
+
+				this.add( '2d' );
+				this.on( 'hit', this, 'hit' );
+				this.on( 'sensor', this, 'sensor' );
+			},
+
+			hit: function ( collision ) {
+				this.destroy();
+			},
+
+			sensor: function () {
+				// No-op
+			},
+
+			draw: function( ctx ) {
+				ctx.fillStyle = '#333';
+				ctx.fillRect(-this.p.cx,-this.p.cy,this.p.w,this.p.h);
+			},
+
+			step: function(dt) {
+				if(!Q.overlap(this,this.stage)) {
+					this.destroy();
+				}
+			}
+		});
+
+
+		Q.component( 'canon', {
+			options: {
+				cooldown: 50
+			},
+
+			added: function () {
+				this.cooldownRemaining = 0;
+				this.entity.on( 'draw', this, 'cool' );
+			},
+
+			cool: function () {
+				if ( this.cooldownRemaining !== 0 ) {
+					this.cooldownRemaining--;
+				}
+			},
+
+			fire: function () {
+				if ( this.cooldownRemaining !== 0 ) {
+					return;
+				}
+				var p = this.entity.p;
+				var bulletOptions = false;
+				if ( p.direction === 'left' ) {
+					bulletOptions = {
+						x: p.x - 48,
+						y: p.y,
+						vx: -1 * 250
+					};
+				} else if ( p.direction === 'right' ) {
+					bulletOptions = {
+						x: p.x + 48,
+						y: p.y,
+						vx: 1 * 250
+					};
+				} else if ( p.direction === 'up' ) {
+					bulletOptions = {
+						x: p.x,
+						y: p.y - 48,
+						vy: -1 * 250
+					};
+				} else if ( p.direction === 'down' ) {
+					bulletOptions = {
+						x: p.x,
+						y: p.y + 48,
+						vy: 1 * 250
+					};
+				}
+				if ( !!bulletOptions ) {
+					this.entity.stage.insert( new Q.Bullet( bulletOptions ) );
+					this.cooldownRemaining = this.options.cooldown;
+				}
+			}
+		} );
 
 
 		Q.component( 'playerControls', {
@@ -136,31 +226,24 @@ define( [ 'quintus' ], function ( Quintus ) {
 					}
 				}
 			}
-		});
+		} );
 
 
 		Q.Sprite.extend( 'Player', {
-			defaults: {
-				is_dummy: false
-			},
-
-			init: function(p) {
+			init: function( p ) {
 				this._super( p, {
 					sheet: 'player',
-					sprite: "player",
+					sprite: 'player',
 					type: SPRITE_PLAYER,
 					collisionMask: SPRITE_MAP_TILE,
+					is_dummy: false
 				} );
 
 				if ( !p.is_dummy ) {
 					this.add( 'playerControls' );
 				}
-				this.add( '2d, animation' );
-				this.on('hit');
-			},
-
-			hit: function ( obj ) {
-				//console.log('hit..');
+				this.add( '2d, animation, canon' );
+				Q.input.on( 'fire', this.canon, 'fire' );
 			}
 		} );
 
