@@ -145,6 +145,8 @@ define( [ 'quintus' ], function ( Quintus ) {
 				var p = this.entity.p;
 
 				Q._defaults( p, this.defaults );
+				p.previousDirectionBuffer = p.direction;
+				p.previousDirection = p.direction;
 
 				this.entity.on( 'step', this, 'step' );
 			},
@@ -175,11 +177,10 @@ define( [ 'quintus' ], function ( Quintus ) {
 					}
 
 					if ( snap_y ) {
-						var down_slack = 16;
-						if ( mod_y < 16 ) {
-							p.y -= 4;
-						} else if ( mod_y >= 16 ) {
-							p.y += 4;
+						if ( p.previousDirection === 'up' ) {
+							p.y -= 2;
+						} else if ( p.previousDirection === 'down' ) {
+							p.y += 2;
 						}
 					}
 				//	Moving vertically
@@ -195,10 +196,10 @@ define( [ 'quintus' ], function ( Quintus ) {
 					}
 
 					if ( snap_x ) {
-						if ( mod_x < 16 ) {
-							p.x -= 4;
-						} else if ( mod_x >= 16 ) {
-							p.x += 4;
+						if ( p.previousDirection === 'left' ) {
+							p.x -= 2;
+						} else if ( p.previousDirection === 'right' ) {
+							p.x += 2;
 						}
 					}
 				} else {
@@ -224,6 +225,10 @@ define( [ 'quintus' ], function ( Quintus ) {
 					} else {
 						this.entity.play('stand_' + p.direction);
 					}
+				}
+				if ( p.previousDirectionBuffer !== p.direction ) {
+					p.previousDirection = p.previousDirectionBuffer;
+					p.previousDirectionBuffer = p.direction;
 				}
 			}
 		} );
