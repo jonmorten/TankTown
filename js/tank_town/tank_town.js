@@ -267,6 +267,10 @@ define( [ 'quintus' ], function ( Quintus ) {
 		} );
 
 		Q.scene( 'level1', function( stage ) {
+			stage.insert( new Q.Repeater( {
+				asset: 'background.png'
+			} ) );
+
 			var map = stage.collisionLayer( new Q.TankTownMap() );
 			map.setup();
 
@@ -276,6 +280,10 @@ define( [ 'quintus' ], function ( Quintus ) {
 		} );
 
 		Q.scene('start', function (stage) {
+			stage.insert( new Q.Repeater( {
+				asset: 'background.png'
+			} ) );
+
 			var container = stage.insert(new Q.UI.Container({
 				y: Q.height/2,
 				x: Q.width/2
@@ -308,7 +316,7 @@ define( [ 'quintus' ], function ( Quintus ) {
 			Q.audio.play('main_theme.mp3', {loop: true});
 		});
 
-		Q.load( 'level.json, blocks.png, hero.png, main_theme.mp3', function() {
+		Q.load( 'background.png, level.json, blocks.png, hero.png, main_theme.mp3', function() {
 			Q.sheet( 'tiles', 'blocks.png', { tileW: 32, tileH: 32 } );
 			Q.sheet( 'player', 'hero.png', { tileW: 64, tileH: 64 } );
 			Q.animations('player', {
