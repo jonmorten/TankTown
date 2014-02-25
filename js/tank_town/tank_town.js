@@ -164,8 +164,28 @@ define( [ 'quintus' ], function ( Quintus ) {
 				var is_moving_up = Q.inputs['up'];
 				var is_moving_down = Q.inputs['down'];
 
-				//	Moving horizontally
-				if ( is_moving_left || is_moving_right ) {
+				//	Is moving and must snap to grid
+				if ( snap_x || snap_y ) {
+					if ( snap_x ) {
+						if ( p.direction === 'right' ) {
+							this.entity.play('walk_right');
+							p.x += p.speed;
+						} else {
+							this.entity.play('walk_left');
+							p.x -= p.speed;
+						}
+					}
+					if ( snap_y ) {
+						if ( p.direction === 'down' ) {
+							this.entity.play('walk_down');
+							p.y += p.speed;
+						} else {
+							this.entity.play('walk_up');
+							p.y -= p.speed;
+						}
+					}
+				//	Move horizontally
+				} else if ( is_moving_left || is_moving_right ) {
 					if ( is_moving_left ) {
 						this.entity.play('walk_left');
 						p.direction = 'left';
@@ -183,7 +203,7 @@ define( [ 'quintus' ], function ( Quintus ) {
 							p.y += 2;
 						}
 					}
-				//	Moving vertically
+				//	Move vertically
 				} else if ( is_moving_up || is_moving_down ) {
 					if ( is_moving_up ) {
 						this.entity.play('walk_up');
@@ -203,28 +223,7 @@ define( [ 'quintus' ], function ( Quintus ) {
 						}
 					}
 				} else {
-					if ( snap_x || snap_y ) {
-						if ( snap_x ) {
-							if ( p.direction === 'right' ) {
-								this.entity.play('walk_right');
-								p.x += p.speed;
-							} else {
-								this.entity.play('walk_left');
-								p.x -= p.speed;
-							}
-						}
-						if ( snap_y ) {
-							if ( p.direction === 'down' ) {
-								this.entity.play('walk_down');
-								p.y += p.speed;
-							} else {
-								this.entity.play('walk_up');
-								p.y -= p.speed;
-							}
-						}
-					} else {
-						this.entity.play('stand_' + p.direction);
-					}
+					this.entity.play('stand_' + p.direction);
 				}
 				if ( p.previousDirectionBuffer !== p.direction ) {
 					p.previousDirection = p.previousDirectionBuffer;
