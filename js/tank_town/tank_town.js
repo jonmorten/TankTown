@@ -50,7 +50,7 @@ define( [ 'quintus' ], function ( Quintus ) {
 					w: 6,
 					h: 6,
 					type: SPRITE_BULLET,
-					collisionMask: SPRITE_MAP_TILE,
+					collisionMask: SPRITE_MAP_TILE | SPRITE_PLAYER | SPRITE_ENEMY,
 					sensor: true// Disable physical interaction with other sprites
 				} );
 
@@ -61,6 +61,9 @@ define( [ 'quintus' ], function ( Quintus ) {
 
 			hit: function ( collision ) {
 				this.destroy();
+				if ( collision.obj.className !== 'TankTownMap' ) {
+					collision.obj.destroy();
+				}
 			},
 
 			sensor: function () {
@@ -252,6 +255,20 @@ define( [ 'quintus' ], function ( Quintus ) {
 		} );
 
 
+		Q.Sprite.extend( 'Enemy', {
+			init: function( p ) {
+				this._super( p, {
+					sheet: 'enemy',
+					sprite: 'enemy',
+					type: SPRITE_ENEMY,
+					collisionMask: SPRITE_MAP_TILE
+				} );
+
+				this.add( '2d, animation' );
+			}
+		} );
+
+
 		Q.TileLayer.extend( 'TankTownMap', {
 			init: function() {
 				this._super({
@@ -274,8 +291,9 @@ define( [ 'quintus' ], function ( Quintus ) {
 			map.setup();
 
 			var player = stage.insert( new Q.Player( tilePos( 1, 1 ) ) );
-
 			stage.add( 'viewport' ).follow( player );
+
+			var enemy = stage.insert( new Q.Enemy( tilePos( 17, 17 ) ) );
 		} );
 
 		Q.scene('start', function (stage) {
@@ -315,19 +333,30 @@ define( [ 'quintus' ], function ( Quintus ) {
 			Q.audio.play('main_theme.mp3', {loop: true});
 		});
 
-		Q.load( 'background.png, level.json, blocks.png, hero.png, main_theme.mp3', function() {
+		Q.load( 'background.png, level.json, blocks.png, hero.png, enemy.png, main_theme.mp3', function() {
 			Q.sheet( 'tiles', 'blocks.png', { tileW: 32, tileH: 32 } );
-			Q.sheet( 'player', 'hero.png', { tileW: 64, tileH: 64 } );
-			Q.animations('player', {
-				walk_left: { frames: [0,1], rate: 1/5 },
-				walk_right: { frames: [2,3], rate: 1/5 },
-				walk_up: { frames: [4,5], rate: 1/5 },
-				walk_down: { frames: [6,7], rate: 1/5 },
-				stand_left: { frames: [0] },
-				stand_right: { frames: [2] },
-				stand_up: { frames: [4] },
-				stand_down: { frames: [6] }
-			});
+
+			var tank_sheet = {
+				animation: {
+					walk_left: { frames: [0,1], rate: 1/5 },
+					walk_right: { frames: [2,3], rate: 1/5 },
+					walk_up: { frames: [4,5], rate: 1/5 },
+					walk_down: { frames: [6,7], rate: 1/5 },
+					stand_left: { frames: [0] },
+					stand_right: { frames: [2] },
+					stand_up: { frames: [4] },
+					stand_down: { frames: [6] }
+				},
+				dimensions: {
+					tileW: 64,
+					tileH: 64
+				}
+			};
+			Q.sheet( 'player', 'hero.png', tank_sheet.dimensions );
+			Q.animations( 'player', tank_sheet.animation );
+			Q.sheet( 'enemy', 'enemy.png', tank_sheet.dimensions );
+			Q.animations( 'enemy', tank_sheet.animation );
+
 			Q.stageScene( 'start' );
 		} );
 	}
