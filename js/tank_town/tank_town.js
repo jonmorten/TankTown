@@ -287,7 +287,7 @@ define( [ 'quintus' ], function ( Quintus ) {
 					sheet: 'player',
 					sprite: 'player',
 					type: SPRITE_PLAYER,
-					collisionMask: SPRITE_MAP_TILE,
+					collisionMask: SPRITE_MAP_TILE | SPRITE_ENEMY,
 					is_dummy: false
 				} );
 
@@ -306,7 +306,7 @@ define( [ 'quintus' ], function ( Quintus ) {
 					sheet: 'enemy',
 					sprite: 'enemy',
 					type: SPRITE_ENEMY,
-					collisionMask: SPRITE_MAP_TILE
+					collisionMask: SPRITE_MAP_TILE | SPRITE_PLAYER
 				} );
 				this.add( '2d, animation, gridMovement, enemyMovement' );
 			}
