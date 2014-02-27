@@ -138,99 +138,144 @@ define( [ 'quintus' ], function ( Quintus ) {
 		} );
 
 
-		Q.component( 'playerControls', {
+		Q.component( 'gridMovement', {
 			defaults: {
 				direction: 'down',
 				speed: 2
 			},
 
-			added: function() {
+			added: function () {
 				var p = this.entity.p;
 
 				Q._defaults( p, this.defaults );
 				p.previousDirectionBuffer = p.direction;
 				p.previousDirection = p.direction;
-
-				this.entity.on( 'step', this, 'step' );
 			},
 
-			step: function( dt ) {
-				var p = this.entity.p;
+			extend: {
+				move: function ( direction ) {
+					var is_moving_left = direction === 'left';
+					var is_moving_right = direction === 'right';
+					var is_moving_up = direction === 'up';
+					var is_moving_down = direction === 'down';
 
-				var mod_x = p.x % 32;
-				var mod_y = p.y % 32;
-				var snap_x = ( mod_x !== 0 );
-				var snap_y = ( mod_y !== 0 );
+					var p = this.p;
 
-				var is_moving_left = Q.inputs['left'];
-				var is_moving_right = Q.inputs['right'];
-				var is_moving_up = Q.inputs['up'];
-				var is_moving_down = Q.inputs['down'];
+					var mod_x = p.x % 32;
+					var mod_y = p.y % 32;
+					var snap_x = ( mod_x !== 0 );
+					var snap_y = ( mod_y !== 0 );
 
-				//	Is moving and must snap to grid
-				if ( snap_x || snap_y ) {
-					if ( snap_x ) {
-						if ( p.direction === 'right' ) {
-							this.entity.play('walk_right');
-							p.x += p.speed;
-						} else {
-							this.entity.play('walk_left');
+					//	Is moving and must snap to grid
+					if ( snap_x || snap_y ) {
+						if ( snap_x ) {
+							if ( p.direction === 'right' ) {
+								this.play('walk_right');
+								p.x += p.speed;
+							} else {
+								this.play('walk_left');
+								p.x -= p.speed;
+							}
+						}
+						if ( snap_y ) {
+							if ( p.direction === 'down' ) {
+								this.play('walk_down');
+								p.y += p.speed;
+							} else {
+								this.play('walk_up');
+								p.y -= p.speed;
+							}
+						}
+					//	Move horizontally
+					} else if ( is_moving_left || is_moving_right ) {
+						if ( is_moving_left ) {
+							this.play('walk_left');
+							p.direction = 'left';
 							p.x -= p.speed;
+						} else if ( is_moving_right ) {
+							this.play('walk_right');
+							p.direction = 'right';
+							p.x += p.speed;
 						}
-					}
-					if ( snap_y ) {
-						if ( p.direction === 'down' ) {
-							this.entity.play('walk_down');
-							p.y += p.speed;
-						} else {
-							this.entity.play('walk_up');
+
+						if ( snap_y ) {
+							if ( p.previousDirection === 'up' ) {
+								p.y -= 2;
+							} else if ( p.previousDirection === 'down' ) {
+								p.y += 2;
+							}
+						}
+					//	Move vertically
+					} else if ( is_moving_up || is_moving_down ) {
+						if ( is_moving_up ) {
+							this.play('walk_up');
+							p.direction = 'up';
 							p.y -= p.speed;
+						} else if ( is_moving_down ) {
+							this.play('walk_down');
+							p.direction = 'down';
+							p.y += p.speed;
 						}
-					}
-				//	Move horizontally
-				} else if ( is_moving_left || is_moving_right ) {
-					if ( is_moving_left ) {
-						this.entity.play('walk_left');
-						p.direction = 'left';
-						p.x -= p.speed;
-					} else if ( is_moving_right ) {
-						this.entity.play('walk_right');
-						p.direction = 'right';
-						p.x += p.speed;
-					}
 
-					if ( snap_y ) {
-						if ( p.previousDirection === 'up' ) {
-							p.y -= 2;
-						} else if ( p.previousDirection === 'down' ) {
-							p.y += 2;
+						if ( snap_x ) {
+							if ( p.previousDirection === 'left' ) {
+								p.x -= 2;
+							} else if ( p.previousDirection === 'right' ) {
+								p.x += 2;
+							}
 						}
+					} else {
+						this.play('stand_' + p.direction);
 					}
-				//	Move vertically
-				} else if ( is_moving_up || is_moving_down ) {
-					if ( is_moving_up ) {
-						this.entity.play('walk_up');
-						p.direction = 'up';
-						p.y -= p.speed;
-					} else if ( is_moving_down ) {
-						this.entity.play('walk_down');
-						p.direction = 'down';
-						p.y += p.speed;
+					if ( p.previousDirectionBuffer !== p.direction ) {
+						p.previousDirection = p.previousDirectionBuffer;
+						p.previousDirectionBuffer = p.direction;
 					}
-
-					if ( snap_x ) {
-						if ( p.previousDirection === 'left' ) {
-							p.x -= 2;
-						} else if ( p.previousDirection === 'right' ) {
-							p.x += 2;
-						}
-					}
-				} else {
-					this.entity.play('stand_' + p.direction);
 				}
-				if ( p.previousDirectionBuffer !== p.direction ) {
-					p.previousDirection = p.previousDirectionBuffer;
-					p.previousDirectionBuffer = p.direction;
+			}
+		} );
+
+
+		Q.component( 'playerMovement', {
+			added: function () {
+				this.entity.on( 'step', this, 'step' );
+				this.on( 'move', this.entity, 'move' );
+			},
+
+			step: function ( dt ) {
+				var direction = null;
+				if ( Q.inputs['left'] ) {
+					direction = 'left';
+				} else if ( Q.inputs['right'] ) {
+					direction = 'right';
+				} else if ( Q.inputs['up'] ) {
+					direction = 'up';
+				} else if ( Q.inputs['down'] ) {
+					direction = 'down';
+				}
+				this.trigger( 'move', direction );
+			}
+		} );
+
+
+		Q.component( 'enemyMovement', {
+			added: function () {
+				this.entity.on( 'step', this, 'step' );
+				this.on( 'move', this.entity, 'move' );
+				this.entity.on( 'hit', this, 'changeDirection' );
+			},
+
+			step: function ( dt ) {
+				this.trigger( 'move', this.entity.p.direction );
+			},
+
+			changeDirection: function ( collision ) {
+				var p = this.entity.p;
+				var rand = ( Math.random() < 0.5 );
+				if ( collision.normalY ) {
+					p.direction = rand ? 'left' : 'right';
+				} else if( collision.normalX ) {
+					p.direction = rand < 0.5 ? 'up' : 'down';
 				}
 			}
 		} );
@@ -247,7 +292,7 @@ define( [ 'quintus' ], function ( Quintus ) {
 				} );
 
 				if ( !p.is_dummy ) {
-					this.add( 'playerControls' );
+					this.add( 'gridMovement, playerMovement' );
 				}
 				this.add( '2d, animation, canon' );
 				Q.input.on( 'fire', this.canon, 'fire' );
@@ -263,8 +308,7 @@ define( [ 'quintus' ], function ( Quintus ) {
 					type: SPRITE_ENEMY,
 					collisionMask: SPRITE_MAP_TILE
 				} );
-
-				this.add( '2d, animation' );
+				this.add( '2d, animation, gridMovement, enemyMovement' );
 			}
 		} );
 
