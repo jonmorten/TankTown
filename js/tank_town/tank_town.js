@@ -495,13 +495,10 @@ define( [ 'quintus' ], function ( Quintus ) {
 
 			button.on('click', function () {
 				Q.stageScene('level1');
-				Q.audio.stop('main_theme.mp3');
 			});
 
 			var player = container.insert( new Q.Player( { is_dummy: true, y: -125 } ) );
 			player.play( 'walk_right' );
-
-			Q.audio.play('main_theme.mp3', {loop: true});
 		});
 
 		Q.load( 'background.png, level.json, blocks.png, hero.png, enemy.png, explosion.png, main_theme.mp3', function() {
@@ -538,8 +535,8 @@ define( [ 'quintus' ], function ( Quintus ) {
 				}
 			} );
 
-			//Q.stageScene( 'start' );
-			Q.stageScene( 'level1' );
+			Q.stageScene( 'start' );
+			Q.audio.play( 'main_theme.mp3', { loop: true } );
 		} );
 	}
 
