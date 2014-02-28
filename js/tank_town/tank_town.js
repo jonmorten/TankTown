@@ -99,7 +99,7 @@ define( [ 'quintus' ], function ( Quintus ) {
 		});
 
 
-		Q.component( 'canon', {
+		Q.component( 'cannon', {
 			options: {
 				cooldown: 50
 			},
@@ -389,10 +389,10 @@ define( [ 'quintus' ], function ( Quintus ) {
 				if ( !p.is_dummy ) {
 					this.add( 'gridMovement, playerMovement' );
 				}
-				this.add( '2d, animation, canon' );
+				this.add( '2d, animation, cannon' );
 				this.on( 'hitByHostileBullet', this, 'explode' );
 				this.on( 'isOutsideMap', this, 'explode' );
-				Q.input.on( 'fire', this.canon, 'fire' );
+				Q.input.on( 'fire', this.cannon, 'fire' );
 			},
 
 			explode: function () {
@@ -409,18 +409,25 @@ define( [ 'quintus' ], function ( Quintus ) {
 					sheet: 'enemy',
 					sprite: 'enemy',
 					type: SPRITE_ENEMY,
-					collisionMask: SPRITE_MAP_TILE | SPRITE_PLAYER
+					collisionMask: SPRITE_MAP_TILE | SPRITE_PLAYER,
+					fireRate: 0.03
 				} );
-				this.add( '2d, animation, gridMovement, enemyMovement' );
+				this.add( '2d, animation, cannon, gridMovement, enemyMovement' );
 				this.on( 'hitByHostileBullet', this, 'explode' );
 				this.on( 'isOutsideMap', this, 'explode' );
-
+				this.on( 'fire', this.cannon, 'fire' );
 			},
 
 			explode: function () {
 				var p = this.p;
 				this.stage.insert( new Q.Explosion( { x: p.x, y: p.y } ) );
 				this.destroy();
+			},
+
+			step: function () {
+				if ( Math.random() < this.p.fireRate ) {
+					this.trigger( 'fire' );
+				}
 			}
 		} );
 

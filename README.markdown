@@ -5,7 +5,6 @@ A remake of the Game Boy game [Battle City](http://en.wikipedia.org/wiki/Battle_
 ## To-do list
 
 * Figure out how to modularize a Quintus game
-* Enemy tanks: AI shooting
 * A way to win the game
 * Dynamic enemy spawn
 * Random boost tiles
