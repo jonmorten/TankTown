@@ -458,9 +458,11 @@ define( [ 'quintus' ], function ( Quintus ) {
 			var player = stage.insert( new Q.Player( tileToPx( 1, 1 ) ) );
 			stage.add( 'viewport' ).follow( player );
 
-			var enemy0 = stage.insert( new Q.Enemy( tileToPx( 15, 17 ) ) );
-			var enemy1 = stage.insert( new Q.Enemy( tileToPx( 17, 17 ) ) );
-			var enemy2 = stage.insert( new Q.Enemy( tileToPx( 17, 15 ) ) );
+			var enemy0 = stage.insert( new Q.Enemy( tileToPx( 5, 16 ) ) );
+			var enemy1 = stage.insert( new Q.Enemy( tileToPx( 5, 14 ) ) );
+			var enemy2 = stage.insert( new Q.Enemy( tileToPx( 14, 5 ) ) );
+			var enemy3 = stage.insert( new Q.Enemy( tileToPx( 16, 5 ) ) );
+			var enemy4 = stage.insert( new Q.Enemy( tileToPx( 17, 16 ) ) );
 		} );
 
 		Q.scene('start', function (stage) {
