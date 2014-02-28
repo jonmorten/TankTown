@@ -51,6 +51,7 @@ define( [ 'quintus' ], function ( Quintus ) {
 		var SPRITE_PLAYER = 20;
 		var SPRITE_ENEMY = 30;
 		var SPRITE_BULLET = 40;
+		var SPRITE_EXPLOSION = 100;
 
 
 		Q.Sprite.extend( 'Bullet', {
@@ -70,8 +71,14 @@ define( [ 'quintus' ], function ( Quintus ) {
 
 			hit: function ( collision ) {
 				this.destroy();
-				if ( collision.obj.className !== 'TankTownMap' ) {
-					collision.obj.destroy();
+				var classHit = collision.obj.className;
+				if ( classHit !== 'TankTownMap' ) {
+					var firedBy = this.p.firedBy;
+					if ( firedBy === 'Player' && classHit === 'Enemy' ) {
+						collision.obj.trigger( 'hitByHostileBullet' );
+					} else if ( firedBy === 'Enemy' && classHit === 'Player' ) {
+						collision.obj.trigger( 'hitByHostileBullet' );
+					}
 				}
 			},
 
@@ -140,9 +147,35 @@ define( [ 'quintus' ], function ( Quintus ) {
 					};
 				}
 				if ( !!bulletOptions ) {
+					bulletOptions.firedBy = this.entity.className;
 					this.entity.stage.insert( new Q.Bullet( bulletOptions ) );
 					this.cooldownRemaining = this.options.cooldown;
 				}
+			}
+		} );
+
+
+
+		Q.Explosion = Q.Sprite.extend( {
+			init: function( p ) {
+				this._super( p, {
+					sheet: 'explosion',
+					sprite: 'explosion',
+					type: SPRITE_EXPLOSION,
+					sensor: true// Disable physical interaction with other sprites
+				} );
+
+				this.add( 'animation' );
+				this.play( 'explode' );
+				this.on( 'exploded' );
+			},
+
+			exploded: function () {
+				this.destroy();
+			},
+
+			sensor: function () {
+				// No-op
 			}
 		} );
 
@@ -346,7 +379,16 @@ define( [ 'quintus' ], function ( Quintus ) {
 					this.add( 'gridMovement, playerMovement' );
 				}
 				this.add( '2d, animation, canon' );
+				this.on( 'hitByHostileBullet' );
 				Q.input.on( 'fire', this.canon, 'fire' );
+			},
+
+			hitByHostileBullet: function () {
+
+			},
+
+			isOutsideMap: function () {
+
 			}
 		} );
 
@@ -360,6 +402,17 @@ define( [ 'quintus' ], function ( Quintus ) {
 					collisionMask: SPRITE_MAP_TILE | SPRITE_PLAYER
 				} );
 				this.add( '2d, animation, gridMovement, enemyMovement' );
+				this.on( 'hitByHostileBullet' );
+			},
+
+			hitByHostileBullet: function () {
+				var p = this.p;
+				this.stage.insert( new Q.Explosion( { x: p.x, y: p.y } ) );
+				this.destroy();
+			},
+
+			isOutsideMap: function () {
+
 			}
 		} );
 
@@ -430,7 +483,7 @@ define( [ 'quintus' ], function ( Quintus ) {
 			Q.audio.play('main_theme.mp3', {loop: true});
 		});
 
-		Q.load( 'background.png, level.json, blocks.png, hero.png, enemy.png, main_theme.mp3', function() {
+		Q.load( 'background.png, level.json, blocks.png, hero.png, enemy.png, explosion.png, main_theme.mp3', function() {
 			Q.sheet( 'tiles', 'blocks.png', { tileW: 32, tileH: 32 } );
 
 			var tank_sheet = {
@@ -454,7 +507,18 @@ define( [ 'quintus' ], function ( Quintus ) {
 			Q.sheet( 'enemy', 'enemy.png', tank_sheet.dimensions );
 			Q.animations( 'enemy', tank_sheet.animation );
 
-			Q.stageScene( 'start' );
+			Q.sheet( 'explosion', 'explosion.png', { tileW: 128, tileH: 128 } );
+			Q.animations( 'explosion', {
+				explode: {
+					trigger: 'exploded',
+					frames: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],
+					rate: 1/5,
+					loop: false
+				}
+			} );
+
+			//Q.stageScene( 'start' );
+			Q.stageScene( 'level1' );
 		} );
 	}
 
