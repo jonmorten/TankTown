@@ -203,8 +203,19 @@ define( [ 'quintus' ], function ( Quintus ) {
 
 					var p = this.p;
 
-					var mod_x = p.x % 32;
-					var mod_y = p.y % 32;
+					var x = p.x;
+					var y = p.y;
+
+					var tilePos = pxToTile( x, y );
+					var tileX = tilePos.x;
+					var tileY = tilePos.y;
+					if ( tileX < 0 || tileY < 0 || tileX > Q.state.get( 'map_x_tile_max' ) || tileY > Q.state.get( 'map_y_tile_max' ) ) {
+						this.trigger( 'isOutsideMap' );
+						return;
+					}
+
+					var mod_x = x % 32;
+					var mod_y = y % 32;
 					var snap_x = ( mod_x !== 0 );
 					var snap_y = ( mod_y !== 0 );
 
@@ -379,16 +390,15 @@ define( [ 'quintus' ], function ( Quintus ) {
 					this.add( 'gridMovement, playerMovement' );
 				}
 				this.add( '2d, animation, canon' );
-				this.on( 'hitByHostileBullet' );
+				this.on( 'hitByHostileBullet', this, 'explode' );
+				this.on( 'isOutsideMap', this, 'explode' );
 				Q.input.on( 'fire', this.canon, 'fire' );
 			},
 
-			hitByHostileBullet: function () {
-
-			},
-
-			isOutsideMap: function () {
-
+			explode: function () {
+				var p = this.p;
+				this.stage.insert( new Q.Explosion( { x: p.x, y: p.y } ) );
+				this.destroy();
 			}
 		} );
 
@@ -402,17 +412,15 @@ define( [ 'quintus' ], function ( Quintus ) {
 					collisionMask: SPRITE_MAP_TILE | SPRITE_PLAYER
 				} );
 				this.add( '2d, animation, gridMovement, enemyMovement' );
-				this.on( 'hitByHostileBullet' );
+				this.on( 'hitByHostileBullet', this, 'explode' );
+				this.on( 'isOutsideMap', this, 'explode' );
+
 			},
 
-			hitByHostileBullet: function () {
+			explode: function () {
 				var p = this.p;
 				this.stage.insert( new Q.Explosion( { x: p.x, y: p.y } ) );
 				this.destroy();
-			},
-
-			isOutsideMap: function () {
-
 			}
 		} );
 
@@ -431,6 +439,8 @@ define( [ 'quintus' ], function ( Quintus ) {
 		} );
 
 		Q.scene( 'level1', function( stage ) {
+			Q.state.reset( { map_x_tile_max: 19, map_y_tile_max: 19 } );
+
 			stage.insert( new Q.Repeater( {
 				asset: 'background.png'
 			} ) );
@@ -447,6 +457,8 @@ define( [ 'quintus' ], function ( Quintus ) {
 		} );
 
 		Q.scene('start', function (stage) {
+			Q.state.reset( { map_x_tile_max: 999, map_y_tile_max: 999 } );
+
 			stage.insert( new Q.Repeater( {
 				asset: 'background.png'
 			} ) );
