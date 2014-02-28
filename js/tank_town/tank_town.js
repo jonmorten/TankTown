@@ -2,10 +2,19 @@ define( [ 'quintus' ], function ( Quintus ) {
 	'use strict';
 
 
-	// Return a x and y location from a row and column
-	var tilePos = function ( col, row ) {
-		return { x: col*32 + 32, y: row*32 + 32 };
+	// Convert between pixel and tile positions
+	var tileToPx = function ( col, row ) {
+		return {
+			x: col * 32 + 32,
+			y: row * 32 + 32
+		};
 	};
+	var pxToTile = function ( x, y ) {
+		return {
+			x: Math.floor( x / 32 ) + 1,
+			y: Math.floor( y / 32 ) + 1
+		};
+	}
 
 
 	var TankTown = function ( options ) {
@@ -259,23 +268,65 @@ define( [ 'quintus' ], function ( Quintus ) {
 
 
 		Q.component( 'enemyMovement', {
+			defaults: {
+				directionChangeDesire: 0,
+				axisCollisionBuffer: false,
+				axisCollision: false
+			},
+
 			added: function () {
+				Q._defaults( this.entity.p, this.defaults );
 				this.entity.on( 'step', this, 'step' );
 				this.on( 'move', this.entity, 'move' );
 				this.entity.on( 'hit', this, 'changeDirection' );
 			},
 
 			step: function ( dt ) {
-				this.trigger( 'move', this.entity.p.direction );
+				var p = this.entity.p;
+
+				p.directionChangeDesire += 0.025;
+
+				var direction = p.direction;
+				if ( Math.random() < p.directionChangeDesire ) {
+					p.directionChangeDesire = 0;
+					var new_directions = (
+						direction === 'left' || direction === 'right'
+						? [ 'up', 'down' ]
+						: [ 'left', 'right' ]
+					);
+					direction = ( Math.random() > 0.5 ? new_directions[0] : new_directions[1] );
+				}
+				this.trigger( 'move', direction );
 			},
 
 			changeDirection: function ( collision ) {
 				var p = this.entity.p;
-				var rand = ( Math.random() < 0.5 );
-				if ( collision.normalY ) {
-					p.direction = rand ? 'left' : 'right';
-				} else if( collision.normalX ) {
-					p.direction = rand < 0.5 ? 'up' : 'down';
+
+				var x = collision.normalX;
+				var y = collision.normalY;
+
+				var axis = ( x !== 0 ? 'x' : 'y' );
+				if ( axis === p.axisCollision ) {
+					var new_directions = (
+						axis === 'x'
+						? [ 'up', 'down' ]
+						: [ 'left', 'right' ]
+					);
+					p.direction = ( Math.random() > 0.5 ? new_directions[0] : new_directions[1] );
+				} else {
+					if ( x === -1 ) {
+						p.direction = 'left';
+					} else if ( x === 1 ) {
+						p.direction = 'right';
+					} else if ( y === -1 ) {
+						p.direction = 'up';
+					} else if ( y === 1 ) {
+						p.direction = 'down';
+					}
+				}
+				if ( p.axisCollisionBuffer !== axis ) {
+					p.axisCollision = p.axisCollisionBuffer;
+					p.axisCollisionBuffer = axis;
 				}
 			}
 		} );
@@ -334,10 +385,12 @@ define( [ 'quintus' ], function ( Quintus ) {
 			var map = stage.collisionLayer( new Q.TankTownMap() );
 			map.setup();
 
-			var player = stage.insert( new Q.Player( tilePos( 1, 1 ) ) );
+			var player = stage.insert( new Q.Player( tileToPx( 1, 1 ) ) );
 			stage.add( 'viewport' ).follow( player );
 
-			var enemy = stage.insert( new Q.Enemy( tilePos( 17, 17 ) ) );
+			var enemy0 = stage.insert( new Q.Enemy( tileToPx( 15, 17 ) ) );
+			var enemy1 = stage.insert( new Q.Enemy( tileToPx( 17, 17 ) ) );
+			var enemy2 = stage.insert( new Q.Enemy( tileToPx( 17, 15 ) ) );
 		} );
 
 		Q.scene('start', function (stage) {
