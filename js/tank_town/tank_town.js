@@ -399,6 +399,9 @@ define( [ 'quintus' ], function ( Quintus ) {
 				var p = this.p;
 				this.stage.insert( new Q.Explosion( { x: p.x, y: p.y } ) );
 				this.destroy();
+				setTimeout( function () {
+					Q.stageScene( 'start' );
+				}, 3000 );
 			}
 		} );
 
